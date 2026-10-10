@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>車両保険、つかう？自腹？の使い方</title>
+<meta name="description" content="車の修理代を保険で払うか自腹で払うか、どちらが得かの目安を出すWebアプリ「車両保険、つかう？自腹？」の使い方です。">
+<!-- 公開前のテスト中。宣伝を始めるときに外す -->
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<style>
+:root{
+  --bg:#EEF1F4; --card:#FFFFFF; --ink:#1A232C; --muted:#4F5B66; --line:#D9DFE5;
+  --accent:#0E6B5E; --accent-ink:#FFFFFF; --accent-soft:#DDEFEA; --self-soft:#E6E9ED;
+  --focus:#1D6FD1;
+  --shadow:0 1px 2px rgba(20,30,40,.05),0 6px 20px -8px rgba(20,30,40,.14);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0F1418; --card:#1A2127; --ink:#E9EDF0; --muted:#A9B3BC; --line:#2E373F;
+    --accent:#4DBCA5; --accent-ink:#0B1A17; --accent-soft:#17342E; --self-soft:#2A333B;
+    --focus:#6FB0FF;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -8px rgba(0,0,0,.5);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+  font-size:1rem;line-height:1.7}
+a{color:var(--accent)}
+a:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+.nw{white-space:nowrap}
+.hero{background:var(--accent-soft);padding:1.6rem 0 1.8rem}
+.hero h1{font-size:clamp(1.4rem,6vw,1.75rem);line-height:1.4;margin:0 0 .6rem;font-weight:800}
+.hero .lead{margin:0 0 1.1rem}
+.btn-go{display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;min-height:54px;background:var(--accent);color:var(--accent-ink);font-size:1.0625rem;font-weight:700;text-decoration:none;border-radius:14px;padding:.5rem 1rem;text-align:center}
+.btn-go:hover{filter:brightness(1.08)}
+.hero .note{font-size:.875rem;color:var(--muted);margin:.6rem 0 0}
+section.blk{padding:2rem 0 .25rem}
+h2{font-size:1.3125rem;line-height:1.45;margin:0 0 1rem;padding-left:.75rem;border-left:6px solid var(--accent)}
+h3{margin:0 0 .35rem;line-height:1.5}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:1.6rem}
+.step{display:grid;grid-template-columns:1fr;gap:.75rem}
+.step h3{display:flex;align-items:center;font-size:1.125rem}
+.step .n{display:inline-flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;margin-right:.5rem;flex:none}
+.step p{margin:0 0 .4rem}
+.shot{display:block;width:100%;max-width:290px;height:auto;border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow);margin:.25rem auto 0;background:var(--self-soft)}
+@media (min-width:700px){
+  .step{grid-template-columns:1fr 280px;align-items:start;gap:1.5rem}
+  .step .shot{margin:0}
+}
+.small{font-size:.875rem;color:var(--muted)}
+.faq details{border:1px solid var(--line);border-radius:var(--r);margin:0 0 .6rem;background:var(--card)}
+.faq summary{cursor:pointer;font-weight:700;padding:.85rem 2.75rem .85rem 1rem;position:relative;list-style:none;min-height:3.25rem}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"＋";position:absolute;right:1rem;top:.8rem;color:var(--accent);font-weight:700}
+.faq details[open] summary::after{content:"－"}
+.faq details > div{padding:0 1rem .85rem}
+.faq details > div p{margin:0 0 .5rem}
+.bottom-cta{background:var(--accent-soft);padding:1.75rem 0 2rem;margin-top:2rem;text-align:center}
+.bottom-cta p{margin:0 0 .85rem;font-weight:700}
+.bottom-cta .btn-go{margin:0 auto}
+footer{padding:1.1rem 0 2rem;font-size:.875rem;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="wrap">
+      <h1>車を小さくぶつけたとき、<span class="nw">保険を使うか、</span><span class="nw">自腹かの目安を出します</span></h1>
+      <p class="lead">修理代の見積もりと、保険証券の等級・年間保険料を入れるだけ。「どちらが得か」と、「修理代がいくら以下なら自腹のほうが得か（分かれ目）」がわかります。登録もインストールもいりません。</p>
+      <a class="btn-go" href="index.html">さっそく使ってみる</a>
+      <p class="note">金額はすべて目安です。車両保険に入っていない人は、修理代は自腹になります。</p>
+    </div>
+  </div>
+
+  <section class="blk" id="how">
+    <div class="wrap">
+      <h2>使い方は3ステップ</h2>
+      <ol class="steps">
+        <li class="step">
+          <div>
+            <h3><span class="n">1</span>見積もりの修理代を入れる</h3>
+            <p>修理工場でもらった見積もりの合計（税込）を、「修理代の見積もり」に入れます。</p>
+          </div>
+          <img class="shot" src="img/step1.png" width="585" height="1266" alt="「修理代の見積もり」に120,000円を入れた画面">
+        </li>
+        <li class="step">
+          <div>
+            <h3><span class="n">2</span>等級と年間保険料を入れて、事故の種類を選ぶ</h3>
+            <p>保険証券（または保険会社のアプリ・更新のお知らせ）で、「等級」と「年間保険料」を見て入れます。月払いの人は、12か月分にしてください。</p>
+            <p>事故の種類は、ふつうは「ぶつけた・こすった」（3等級下がる）です。盗難・飛び石・台風などのときは、もう一方を選びます。</p>
+            <p class="small">自己負担（免責）がある人や、ここ数年で保険を使った人は、「くわしく設定」を開いて入れます。ふつうは開かなくて大丈夫です。</p>
+          </div>
+          <img class="shot" src="img/step2.png" width="585" height="1266" alt="15等級・年間保険料60,000円・「ぶつけた・こすった」を選んだ画面">
+        </li>
+        <li class="step">
+          <div>
+            <h3><span class="n">3</span>答えを見る</h3>
+            <p>いちばん上に「自腹のほうが得」か「保険を使うほうが得」と、その差額が出ます。下の2つのカードは、自分の財布から出るお金でくらべた金額です。</p>
+            <p>「修理代が〇〇円以下なら自腹」の行が分かれ目です。見積もりがその金額より安ければ自腹、高ければ保険を使うほうが得です。</p>
+            <p class="small">例：修理代120,000円・15等級・年間保険料60,000円・ぶつけた場合は、自腹のほうが43,404円得、と出ます。</p>
+          </div>
+          <img class="shot" src="img/step3.png" width="585" height="1266" alt="「自腹のほうが43,404円 得」と、2つのカード、分かれ目が出ている画面">
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="blk faq" id="faq">
+    <div class="wrap">
+      <h2>よくある質問</h2>
+      <details>
+        <summary>車両保険に入っていないときは？</summary>
+        <div><p>車両保険に入っていないと、自分の車の修理代は保険から出ません。自腹になります。このアプリは、車両保険に入っている人向けです。</p></div>
+      </details>
+      <details>
+        <summary>等級がわからないときは？</summary>
+        <div><p>保険証券、保険会社のアプリやマイページ、更新のお知らせに載っています。はじめて入った年は6等級です。どうしてもわからないときは、保険会社や代理店に聞いてください。</p></div>
+      </details>
+      <details>
+        <summary>自己負担（免責）とは？</summary>
+        <div><p>自己負担（免責）＝車両保険を使うとき、自分で先に払うお金のことです。保険証券の「免責金額」に書いてあります。「なし」なら0円のままで大丈夫です。</p></div>
+      </details>
+      <details>
+        <summary>出た金額は、どこまで正しいですか？</summary>
+        <div>
+          <p>あくまで目安です。保険会社・特約・年齢条件・保険料の改定などで、実際とは変わります。</p>
+          <p>正しい金額は、保険会社や代理店に「使った場合と使わなかった場合の保険料」を聞いて確かめてください。</p>
+        </div>
+      </details>
+      <details>
+        <summary>入れた値は、どこかに送られますか？</summary>
+        <div><p>送られません。入れた値は、お使いの端末のブラウザの中（＝ブラウザの中にデータをしまっておく場所のこと）だけに覚えておきます。「最初から」を押すと消せます。</p></div>
+      </details>
+    </div>
+  </section>
+
+  <div class="bottom-cta">
+    <div class="wrap">
+      <p>保険を使うか、自腹か。目安を出してみませんか？</p>
+      <a class="btn-go" href="index.html">アプリに戻る</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">車両保険、つかう？自腹？</div>
+</footer>
+</body>
+</html>

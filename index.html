@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>車両保険、つかう？自腹？</title>
+<meta name="description" content="車の修理代を自動車保険で払うか自腹で払うか、どちらが安いかの目安を出します。">
+<style>
+:root{
+  --bg:#EEF1F4; --card:#FFFFFF; --ink:#1A232C; --muted:#4F5B66; --line:#D9DFE5;
+  --accent:#0E6B5E; --accent-ink:#FFFFFF; --accent-soft:#DDEFEA;
+  --bar-a:#A9B3BD; --self-soft:#E6E9ED;
+  --warn:#8A4B00; --warn-soft:#FBEBD3;
+  --focus:#1D6FD1;
+  --shadow:0 1px 2px rgba(20,30,40,.05),0 6px 20px -8px rgba(20,30,40,.14);
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1418; --card:#1A2127; --ink:#E9EDF0; --muted:#A9B3BC; --line:#2E373F;
+    --accent:#4DBCA5; --accent-ink:#0B1A17; --accent-soft:#17342E;
+    --bar-a:#59656F; --self-soft:#2A333B;
+    --warn:#F2B86B; --warn-soft:#3A2A12;
+    --focus:#6FB0FF;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -8px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1418; --card:#1A2127; --ink:#E9EDF0; --muted:#A9B3BC; --line:#2E373F;
+  --accent:#4DBCA5; --accent-ink:#0B1A17; --accent-soft:#17342E;
+  --bar-a:#59656F; --self-soft:#2A333B;
+  --warn:#F2B86B; --warn-soft:#3A2A12;
+  --focus:#6FB0FF;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -8px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;
+  font-size:1rem;line-height:1.6;font-feature-settings:"palt";}
+.num,.v,.amt,.sum,.dif,.tailsum b,.yen input{font-variant-numeric:tabular-nums}
+.wrap{max-width:1040px;margin:0 auto;padding:1.25rem 16px 3rem}
+header{padding:.25rem 0 1.1rem}
+.titlerow{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem .75rem}
+h1{margin:0;font-size:clamp(1.5rem,6.4vw,1.875rem);line-height:1.25;letter-spacing:.01em;font-weight:800}
+.lead{margin:.4rem 0 0;color:var(--muted);font-size:.9375rem}
+.pre{margin:.6rem 0 0;padding:.6rem .8rem;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--muted);font-size:.875rem;line-height:1.55}
+.pre b{color:var(--ink);font-weight:700}
+.reset{margin-left:auto;white-space:nowrap;min-height:44px;display:inline-flex;align-items:center;gap:.35rem;padding:0 .9rem;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);font:inherit;font-size:.875rem;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
+.reset:hover{color:var(--ink)}
+.reset svg{width:1em;height:1em;flex:none}
+.reset:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.grid{display:grid;gap:1rem}
+.grid > *{min-width:0}
+@media (min-width:900px){
+  .grid{grid-template-columns:400px 1fr;align-items:start}
+  .col-in{position:sticky;top:16px}
+}
+.card{background:var(--card);border-radius:var(--r);padding:1.1rem 1.1rem 1rem;border:1px solid var(--line);box-shadow:var(--shadow)}
+.card > details:first-child{border-top:0;margin-top:0}
+.field{margin:0 0 1.1rem}
+.field:last-child{margin-bottom:0}
+label.lab,.lab{display:block;font-weight:700;font-size:.9375rem;margin-bottom:.35rem}
+.hint{display:block;color:var(--muted);font-size:.875rem;line-height:1.5;margin-top:.35rem}
+.yen{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.yen:focus-within{border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 25%,transparent)}
+.yen input{flex:1;min-width:0;min-height:48px;border:0;outline:0;background:transparent;color:var(--ink);font:inherit;font-size:1.375rem;font-weight:700;padding:.4rem .75rem;text-align:right}
+.yen input::placeholder{color:var(--muted);opacity:.6;font-weight:600}
+.yen span{padding:0 .75rem 0 .25rem;color:var(--muted);font-size:.9375rem}
+select{width:100%;min-height:48px;font:inherit;font-size:1.125rem;font-weight:700;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:.5rem 2.5rem .5rem .75rem;appearance:none;-webkit-appearance:none;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat;transition:border-color .15s,box-shadow .15s}
+select:invalid{color:var(--muted);font-weight:600}
+select:focus{outline:0;border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 25%,transparent)}
+.choice{display:grid;gap:.5rem}
+.choice label{position:relative;display:flex;align-items:flex-start;gap:.65rem;padding:.65rem .8rem;min-height:44px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;transition:border-color .15s,background .15s}
+.choice input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.choice .ck{flex:none;width:1.25rem;height:1.25rem;margin-top:.15rem;border-radius:50%;border:2px solid var(--line);transition:border-color .15s,box-shadow .15s}
+.choice .tx{font-weight:700;font-size:.9375rem;line-height:1.4}
+.choice .tx small{display:block;font-weight:500;font-size:.8125rem;color:var(--muted);margin-top:.1rem}
+.choice label:has(input:checked){border-color:var(--ink);background:var(--self-soft)}
+.choice label:has(input:checked) .ck{border-color:var(--ink);box-shadow:inset 0 0 0 .3rem var(--ink)}
+.choice label:has(input:focus-visible){outline:3px solid var(--focus);outline-offset:1px}
+details{border-top:1px solid var(--line);margin-top:.9rem;padding-top:.25rem}
+summary{cursor:pointer;list-style:none;padding:.6rem 0;font-weight:700;font-size:.9375rem;color:var(--ink);display:flex;align-items:center;flex-wrap:wrap;gap:.4rem .5rem;min-height:44px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-left:2px;flex:none}
+details[open] > summary::before{transform:rotate(45deg)}
+summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+.st{flex:1 1 12em}
+.advbadge{margin-left:auto;font-size:.8125rem;font-weight:700;color:var(--ink);background:var(--self-soft);border-radius:999px;padding:.15rem .65rem;white-space:nowrap}
+.advbadge:empty,details[open] .advbadge{display:none}
+.details-body{padding:.25rem 0 .6rem}
+
+/* 結果 */
+.verdict{background:var(--card);border-radius:var(--r);border:1px solid var(--line);box-shadow:var(--shadow);padding:1.25rem 1.1rem 1.1rem;scroll-margin-top:12px}
+.verdict .ask{color:var(--muted);font-size:.9375rem;margin:0 0 .25rem}
+.verdict .big{font-size:clamp(1.55rem,7.4vw,2.125rem);line-height:1.2;font-weight:800;margin:0;letter-spacing:.005em}
+.verdict .big .num{white-space:nowrap}
+.verdict .big.self{color:var(--ink)}
+.verdict .big.ins{color:var(--accent)}
+.verdict .sub{margin:.5rem 0 0;font-size:.9375rem}
+.cmphead{margin:1rem 0 .4rem;color:var(--muted);font-size:.875rem;font-weight:600}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.6em,1fr));gap:.6rem}
+.cmp{border-radius:14px;padding:.75rem .8rem .7rem;border:1.5px solid var(--line);transition:border-color .2s,background .2s}
+.cmp.win{border-color:var(--ink);background:var(--self-soft)}
+.cmp.win.ins-side{border-color:var(--accent);background:var(--accent-soft)}
+.cmp .t{display:flex;align-items:center;justify-content:space-between;gap:.4rem;font-size:.875rem;font-weight:600;color:var(--muted);margin:0}
+.cmp.win .t{color:var(--ink)}
+.cmp .v{font-size:1.375rem;font-weight:800;margin:.15rem 0 0;line-height:1.25;white-space:nowrap}
+.cmp .d{font-size:.8125rem;color:var(--muted);margin:.3rem 0 0;line-height:1.45}
+.cmp .tag{flex:none;font-size:.75rem;font-weight:700;padding:.1rem .55rem;border-radius:999px;background:var(--ink);color:var(--card)}
+.cmp.ins-side .tag{background:var(--accent);color:var(--accent-ink)}
+.notice{margin-top:.9rem;padding:.6rem .75rem;border-radius:12px;background:var(--warn-soft);color:var(--warn);font-size:.875rem;line-height:1.5}
+.line{margin:.9rem 0 0;font-size:.9375rem;line-height:1.6}
+
+/* 画面下の小さな結論バー（スマホ） */
+.peek{position:fixed;left:16px;right:16px;bottom:12px;z-index:5;margin:0 auto;max-width:480px;min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.6rem 1rem;border:0;border-radius:14px;background:var(--ink);color:var(--card);font:inherit;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 10px 30px -8px rgba(0,0,0,.45);
+  transform:translateY(calc(100% + 16px));opacity:0;pointer-events:none;transition:transform .25s ease,opacity .25s ease}
+.peek.show{transform:none;opacity:1;pointer-events:auto}
+.peek .chev{flex:none;font-size:1.4rem;line-height:1;opacity:.8}
+.peek:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media (min-width:900px){ .peek{display:none} }
+
+/* 年ごとの内訳 */
+.why{margin:.25rem 0 .9rem;font-size:.9375rem;line-height:1.65}
+.why .mini{display:block;color:var(--muted);font-size:.875rem;margin-top:.2rem}
+.legend{display:flex;gap:.4rem 1rem;flex-wrap:wrap;align-items:center;font-size:.875rem;color:var(--muted);margin:0 0 .6rem}
+.legend i{display:inline-block;width:.75rem;height:.75rem;border-radius:3px;vertical-align:-1px;margin-right:.35rem}
+.legend i.a{background:var(--bar-a)} .legend i.b{background:var(--accent)}
+.legend .note{flex-basis:100%}
+.yr{display:grid;grid-template-columns:3.4em 1fr;gap:.25rem .6rem;align-items:start;padding:.55rem 0;border-top:1px solid var(--line)}
+.yr .y{font-weight:700;font-size:.875rem;padding-top:.1rem}
+.yr.hi{background:var(--bg);border-radius:10px;padding:.55rem .6rem;margin:0 -.6rem;border-top:0}
+.yr.hi + .yr.hi{margin-top:.25rem}
+.yrs > .yr:first-child{border-top:0}
+.bar{margin-bottom:.3rem}
+.bar .cap{display:flex;flex-wrap:wrap;align-items:baseline;gap:.1rem .4rem;font-size:.8125rem;line-height:1.3}
+.bar .who{flex:none;min-width:3.6em;color:var(--muted)}
+.bar .g{color:var(--muted);white-space:nowrap}
+.bar .amt{margin-left:auto;color:var(--ink);font-weight:600;white-space:nowrap}
+.bar .trk{height:.5rem;border-radius:4px;margin-top:.15rem}
+.bar .trk b{display:block;height:100%;border-radius:4px;min-width:3px}
+.bar.a .trk b{background:var(--bar-a)}
+.bar.b .trk b{background:var(--accent)}
+.dif{font-size:.8125rem;color:var(--muted);margin-top:.1rem}
+.yr.hi .dif{color:var(--ink);font-weight:700;font-size:.875rem}
+details.tail{border-top:1px solid var(--line);margin:0;padding:0}
+details.tail > summary{display:block;padding:.55rem 0;font-weight:400;min-height:0}
+details.tail > summary::before{display:none}
+.tailsum{font-size:.875rem;line-height:1.45}
+.tailsum b{font-weight:700}
+.tailsum .rng{display:inline-block;min-width:3.4em;margin-right:.3rem}
+.tailsum small{display:block;color:var(--muted);font-size:.8125rem;margin-top:.1rem}
+.tailsum small::after{content:" ▸ 年ごとに見る"}
+details.tail[open] .tailsum small::after{content:" ▾ とじる"}
+details.tail .yrs{padding-left:0}
+.sum{display:flex;justify-content:space-between;gap:12px;padding:.6rem 0 .1rem;border-top:2px solid var(--line);font-weight:700;font-size:.9375rem}
+
+/* 計算のしかた */
+.how p{margin:0 0 .6rem;font-size:.9rem;line-height:1.65}
+.how table{width:100%;border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;margin:.5rem 0 .6rem}
+.how th,.how td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line)}
+.how th{color:var(--muted);font-weight:600}
+.how th:first-child,.how td:first-child{text-align:left}
+.how .src{font-size:.85rem;color:var(--muted);line-height:1.6}
+.how a{color:inherit}
+.foot{margin-top:1.1rem;color:var(--muted);font-size:.875rem;line-height:1.6}
+.about-link{margin:.25rem 0 0;font-size:.8125rem}.about-link a{color:var(--accent);font-weight:600}
+.about-more{text-align:center;margin:1.1rem 0 0}
+.about-more a{display:inline-flex;align-items:center;min-height:44px;padding:0 1.1rem;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--muted);font-size:.875rem;font-weight:600;text-decoration:none}
+.about-more a:hover{color:var(--ink)}
+.about-more a:focus-visible,.about-link a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="titlerow">
+    <h1>車両保険、つかう？自腹？</h1>
+    <button class="reset" id="reset" type="button" aria-label="入力を全部消して最初から"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>最初から</button>
+  </div>
+  <p class="about-link"><a href="about.html">はじめての方へ：使い方</a></p>
+  <p class="lead">修理代と今の等級を入れると、保険を使うのと自腹のどちらが安いかの目安が出ます。</p>
+  <p class="pre">車両保険に入っている人向けです。入っていなければ修理代は自腹になります。保険証券で見るのは <b>等級・年間保険料・自己負担（免責）</b> の 3 つだけ。</p>
+</header>
+
+<div class="grid">
+<div class="col-in">
+<section class="card" aria-label="入力">
+  <div class="field">
+    <label class="lab" for="repair">修理代の見積もり</label>
+    <div class="yen"><input id="repair" inputmode="numeric" autocomplete="off" placeholder="例 150,000"><span>円</span></div>
+    <span class="hint">修理工場の見積もりの合計（税込）。</span>
+  </div>
+  <div class="field">
+    <label class="lab" for="grade">今の等級</label>
+    <select id="grade" required><option value="" selected>選んでください</option></select>
+    <span class="hint">保険証券・保険会社のアプリやマイページ・更新のお知らせに載っています。はじめて入った年は 6 等級です。</span>
+  </div>
+  <div class="field">
+    <label class="lab" for="premium">今の年間保険料</label>
+    <div class="yen"><input id="premium" inputmode="numeric" autocomplete="off" placeholder="例 60,000"><span>円</span></div>
+    <span class="hint">保険証券の「保険料」。月払いなら 12 か月分にしてください。</span>
+  </div>
+  <div class="field">
+    <span class="lab" id="kindlab">事故の種類</span>
+    <div class="choice" role="radiogroup" aria-labelledby="kindlab">
+      <label><input type="radio" name="kind" value="3" checked><span class="ck"></span><span class="tx">ぶつけた・こすった<small>相手・物・壁・電柱など。3 等級下がり、来年から保険料が上がる</small></span></label>
+      <label><input type="radio" name="kind" value="1"><span class="ck"></span><span class="tx">盗難・飛び石・台風・いたずら<small>1 等級下がり、来年から保険料が上がる</small></span></label>
+    </div>
+  </div>
+  <details id="adv">
+    <summary><span class="st">ここ数年で保険を使った人・自己負担（免責）がある人</span><span class="advbadge" id="advbadge"></span></summary>
+    <div class="details-body">
+      <div class="field">
+        <label class="lab" for="jikoari">事故有の期間（いま残っている年数）</label>
+        <select id="jikoari">
+          <option value="0">なし（ふつうはこれ）</option>
+          <option value="1">あと 1 年</option>
+          <option value="2">あと 2 年</option>
+          <option value="3">あと 3 年</option>
+          <option value="4">あと 4 年</option>
+          <option value="5">あと 5 年</option>
+          <option value="6">あと 6 年</option>
+        </select>
+        <span class="hint">保険証券の「事故有係数適用期間」の年数。0 年か載っていなければ「なし」。</span>
+      </div>
+      <div class="field">
+        <label class="lab" for="deduct">自己負担（免責）</label>
+        <div class="yen"><input id="deduct" inputmode="numeric" autocomplete="off" placeholder="0"><span>円</span></div>
+        <span class="hint">車両保険を使うとき自分で払う分。証券の「免責金額」の 1 回目の数字。「なし」なら 0 のままで。</span>
+      </div>
+    </div>
+  </details>
+</section>
+</div>
+
+<div class="col-out">
+<section class="verdict" id="verdict" aria-live="polite"></section>
+
+<section class="card" style="margin-top:1rem" id="detailcard">
+  <details id="years">
+    <summary>年ごとの内訳</summary>
+    <div class="details-body" id="yearsBody"></div>
+  </details>
+  <details class="how" id="how">
+    <summary>計算のしかた・出典</summary>
+    <div class="details-body" id="howBody"></div>
+  </details>
+</section>
+
+<p class="foot">ここで出る金額は目安です。保険会社・特約・年齢条件・保険料の改定などで実際とは変わります。正しい金額は保険会社や代理店に「使った場合と使わなかった場合の保険料」を聞いて確かめてください。入力した値はこの端末の中だけに保存され、どこにも送られません。</p>
+<p class="about-more"><a href="about.html">このアプリの使い方</a></p>
+</div>
+</div>
+</div>
+
+<button class="peek" id="peek" type="button" aria-hidden="true" tabindex="-1"><span id="peekText"></span><span class="chev" aria-hidden="true">›</span></button>
+
+<script>
+// ==calc-start==
+// ノンフリート等級ごとの割増引率（%）。[無事故, 事故有]
+// 損害保険料率算出機構の参考純率（2021年6月届出、2023年1月以降の契約から各社が適用）。2026-10 時点で確認。
+var RATES = {
+  1:[108,108], 2:[63,63], 3:[38,38], 4:[7,7], 5:[-2,-2], 6:[-13,-13],
+  7:[-27,-14], 8:[-38,-15], 9:[-44,-18], 10:[-46,-19], 11:[-48,-20], 12:[-50,-22],
+  13:[-51,-24], 14:[-52,-25], 15:[-53,-28], 16:[-54,-32], 17:[-55,-44], 18:[-56,-46],
+  19:[-57,-50], 20:[-63,-51]
+};
+function coef(grade, jikoari){ var r = RATES[grade]; return 1 + (jikoari ? r[1] : r[0]) / 100; }
+
+// 使った場合・使わなかった場合の、これから毎年の保険料を出す。
+//  grade: 今の等級(1-20)  premium: 今の年間保険料(円)  jikoariYears: 今の事故有の期間(年, 0-6)
+//  down: 3 か 1（何等級下がる事故か）  deduct: 免責（自己負担）
+// 返り値: { years:[{year, noClaim:{grade,jikoari,premium}, claim:{...}, diff}], total, totalInJikoari, jikoariSpan, breakEven, base }
+function simulate(opt){
+  var grade = Math.min(20, Math.max(1, Math.round(opt.grade)));
+  var premium = Math.max(0, +opt.premium || 0);
+  var k0 = Math.min(6, Math.max(0, Math.round(opt.jikoariYears || 0)));
+  var down = opt.down === 1 ? 1 : 3;
+  var deduct = Math.max(0, +opt.deduct || 0);
+  var maxYears = opt.maxYears || 25;
+  var base = premium / coef(grade, k0 > 0);           // 等級に関係ない元の保険料（近似）
+  var a = { g: grade, k: k0 }, b = { g: grade, k: k0 };
+  var years = [], total = 0, totalInJikoari = 0;
+  var kClaim1 = Math.min(6, Math.max(0, k0 - 1) + down); // 使った場合の、来年の事故有の期間
+  for (var t = 1; t <= maxYears; t++){
+    a = { g: Math.min(20, a.g + 1), k: Math.max(0, a.k - 1) };
+    if (t === 1) b = { g: Math.max(1, grade - down), k: kClaim1 };
+    else b = { g: Math.min(20, b.g + 1), k: Math.max(0, b.k - 1) };
+    if (a.g === b.g && a.k === b.k) break;           // 同じ状態にそろったら、そのあとの差は 0
+    var pa = Math.round(base * coef(a.g, a.k > 0));
+    var pb = Math.round(base * coef(b.g, b.k > 0));
+    var d = pb - pa;
+    years.push({ year: t, noClaim: { grade: a.g, jikoari: a.k > 0, premium: pa }, claim: { grade: b.g, jikoari: b.k > 0, premium: pb }, diff: d });
+    total += d;
+    if (t <= kClaim1) totalInJikoari += d;
+  }
+  return { years: years, total: total, totalInJikoari: totalInJikoari, jikoariSpan: kClaim1,
+           breakEven: total + deduct, base: base, grade: grade, down: down, deduct: deduct, premium: premium, jikoariYears: k0 };
+}
+
+// 修理代と比べて、どちらが得か。 { winner:'self'|'ins'|'even', saving, insCost, repair, deductOnly }
+function decide(sim, repair){
+  var r = Math.max(0, +repair || 0);
+  var insCost = sim.breakEven;             // 保険を使ったときに自分の財布から出る合計（免責＋増える保険料）
+  var deductOnly = sim.deduct > 0 && r <= sim.deduct;   // 修理代が免責以下：保険を使っても全額自分持ち
+  var diff = insCost - r;                  // プラスなら自腹が得
+  var winner = diff > 0 ? 'self' : diff < 0 ? 'ins' : 'even';
+  return { winner: winner, saving: Math.abs(diff), insCost: insCost, repair: r, deductOnly: deductOnly };
+}
+// ==calc-end==
+
+(function(){
+  var KEY = 'hoken-tsukau-v1';
+  var $ = function(id){ return document.getElementById(id); };
+  var repairEl = $('repair'), gradeEl = $('grade'), premiumEl = $('premium'), jikoariEl = $('jikoari'), deductEl = $('deduct');
+  var verdictEl = $('verdict'), peek = $('peek'), peekText = $('peekText');
+  var fmt = function(n){ return Math.round(n).toLocaleString('ja-JP'); };
+  var yen = function(n){ return '<strong class="num">' + fmt(n) + '円</strong>'; };
+  var num = function(el){ var v = String(el.value).replace(/[^\d]/g, ''); return v ? +v : 0; };
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // 等級の選択肢（20 → 1）。最初は「選んでください」のまま
+  for (var g = 20; g >= 1; g--){ var o = document.createElement('option'); o.value = g; o.textContent = g + ' 等級'; gradeEl.appendChild(o); }
+
+  function load(){
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || '{}');
+      if (s.repair) repairEl.value = fmt(s.repair);
+      gradeEl.value = s.grade ? String(s.grade) : '';
+      if (s.premium) premiumEl.value = fmt(s.premium);
+      jikoariEl.value = s.jikoariYears || 0;
+      if (s.deduct) deductEl.value = fmt(s.deduct);
+      var k = document.querySelector('input[name=kind][value="' + (s.down === 1 ? 1 : 3) + '"]'); if (k) k.checked = true;
+    } catch (e) { gradeEl.value = ''; }
+  }
+  function read(){
+    return { repair: num(repairEl), grade: +gradeEl.value || 0, premium: num(premiumEl), jikoariYears: +jikoariEl.value,
+             deduct: num(deductEl), down: +(document.querySelector('input[name=kind]:checked') || {}).value || 3 };
+  }
+  function save(st){ try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+
+  // 「くわしく設定」が閉じていても、0 以外の値が入っていることが見えるように
+  function renderBadge(st){
+    var parts = [];
+    if (st.jikoariYears > 0) parts.push('事故有 あと ' + st.jikoariYears + ' 年');
+    if (st.deduct > 0) parts.push('自己負担 ' + fmt(st.deduct) + '円');
+    $('advbadge').textContent = parts.join('／');
+  }
+
+  // 画面下の結論バー：答えが画面の下に隠れているときだけ出す（PC は CSS で非表示）
+  var peekOn = false;
+  function setPeek(text){ peekOn = !!text; peekText.textContent = text || ''; updatePeek(); }
+  function updatePeek(){
+    var below = verdictEl.getBoundingClientRect().top > window.innerHeight - 60;
+    var show = peekOn && below;
+    peek.classList.toggle('show', show);
+    peek.setAttribute('aria-hidden', show ? 'false' : 'true');
+    peek.tabIndex = show ? 0 : -1;
+  }
+  window.addEventListener('scroll', updatePeek, { passive: true });
+  window.addEventListener('resize', updatePeek);
+  peek.addEventListener('click', function(){ verdictEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }); });
+
+  function render(){
+    var st = read(); save(st); renderBadge(st);
+    var v = verdictEl;
+    var missing = [];
+    if (!st.grade) missing.push('今の等級');
+    if (!st.premium) missing.push('今の年間保険料');
+    if (missing.length){
+      v.innerHTML = '<p class="ask">まだ答えは出せません</p><p class="big self">' + missing.join('と') + 'を入れてください</p>' +
+        '<p class="sub">入れると、保険を使った場合に増える保険料と「自腹が得になる修理代の分かれ目」が出ます。</p>';
+      $('yearsBody').innerHTML = '<p class="hint">等級と年間保険料を入れると、年ごとの保険料がここに並びます。</p>';
+      renderHow(null); setPeek('');
+      return;
+    }
+    var sim = simulate(st);
+    var de = decide(sim, st.repair);
+    var n = sim.years.length;
+    var html = '', peekMsg = '';
+    if (!st.repair){
+      html += '<p class="ask">修理代を入れると、どちらが得かが出ます。先に分かれ目だけ</p>';
+      html += '<p class="big self">修理代が ' + yen(sim.breakEven) + ' 以下なら、自腹のほうが得</p>';
+      html += '<p class="line">保険を使うと、これから ' + n + ' 年で保険料が合計 ' + yen(sim.total) + ' 増えます' + (sim.deduct ? '（自己負担 ' + fmt(sim.deduct) + '円 は別）' : '') + '。</p>';
+    } else if (de.deductOnly){
+      html += '<p class="ask">修理代 ' + fmt(de.repair) + '円 ／ 自己負担（免責） ' + fmt(sim.deduct) + '円</p>';
+      html += '<p class="big self">自腹で払うことになります</p>';
+      html += '<p class="sub">修理代が自己負担（免責）の金額以下なので、保険を使っても保険金は出ません。全額が自分持ちです。</p>';
+      peekMsg = '自腹で払うことになります';
+    } else {
+      html += '<p class="ask">修理代 ' + fmt(de.repair) + '円 の場合</p>';
+      if (de.winner === 'even'){ html += '<p class="big self">どちらも同じくらい</p>'; peekMsg = 'どちらも同じくらい'; }
+      else if (de.winner === 'self'){ html += '<p class="big self">自腹のほうが ' + yen(de.saving) + ' 得</p>'; peekMsg = '自腹のほうが ' + fmt(de.saving) + '円 得'; }
+      else { html += '<p class="big ins">保険を使うほうが ' + yen(de.saving) + ' 得</p>'; peekMsg = '保険を使うほうが ' + fmt(de.saving) + '円 得'; }
+      // 自分の財布から出るお金で、2 つをくらべる
+      var selfWin = de.winner === 'self', insWin = de.winner === 'ins';
+      html += '<p class="cmphead">自分の財布から出るお金でくらべると</p><div class="compare">' +
+        '<div class="cmp' + (selfWin ? ' win' : '') + '"><p class="t"><span>自腹で払う</span>' + (selfWin ? '<span class="tag">こっち</span>' : '') + '</p><p class="v">' + fmt(de.repair) + '円</p><p class="d">修理代をそのまま払う。等級はそのまま上がる</p></div>' +
+        '<div class="cmp ins-side' + (insWin ? ' win' : '') + '"><p class="t"><span>保険を使う</span>' + (insWin ? '<span class="tag">こっち</span>' : '') + '</p><p class="v">' + fmt(de.insCost) + '円</p><p class="d">修理代は保険から。自分で払うのは' + (sim.deduct ? '自己負担 ' + fmt(sim.deduct) + '円 と、' : '、') + 'これから ' + n + ' 年で増える保険料 ' + fmt(sim.total) + '円</p></div>' +
+        '</div>';
+      html += '<p class="line">修理代が ' + yen(sim.breakEven) + ' 以下なら自腹、それより高ければ保険を使うほうが得です。</p>';
+      if (de.winner !== 'even' && de.saving < sim.premium * 0.15){
+        html += '<div class="notice">差は小さめです。見積もりが変わったり、保険会社によって率が少しちがったりすると、結果が入れかわることがあります。</div>';
+      }
+    }
+    v.innerHTML = html;
+    setPeek(peekMsg);
+    renderYears(sim);
+    renderHow(sim);
+  }
+
+  function yearRow(y, hi){
+    return '<div class="yr' + (hi ? ' hi' : '') + '"><div class="y">' + y.year + '年目</div><div>' +
+      barRow('a', '使わない', y.noClaim, y._max) + barRow('b', '使う', y.claim, y._max) +
+      '<div class="dif">差 ' + (y.diff >= 0 ? '+' : '−') + fmt(Math.abs(y.diff)) + '円</div></div></div>';
+  }
+  function barRow(cls, who, s, max){
+    var w = max ? (s.premium / max * 100) : 0;
+    return '<div class="bar ' + cls + '"><div class="cap"><span class="who">' + who + '</span><span class="g">' + s.grade + '等級' + (s.jikoari ? '・事故有' : '') + '</span><span class="amt">' + fmt(s.premium) + '円</span></div><div class="trk"><b style="width:' + w.toFixed(1) + '%"></b></div></div>';
+  }
+
+  function renderYears(sim){
+    var body = $('yearsBody');
+    var n = sim.years.length;
+    if (!n){ body.innerHTML = '<p class="hint">保険料の差は出ません。</p>'; return; }
+    var max = 0;
+    sim.years.forEach(function(y){ max = Math.max(max, y.noClaim.premium, y.claim.premium); });
+    sim.years.forEach(function(y){ y._max = max; });
+    var downWord = sim.down === 1 ? '1 等級' : '3 等級';
+    var h = '<p class="why">今の ' + sim.grade + ' 等級' + (sim.jikoariYears ? '（事故有 あと ' + sim.jikoariYears + ' 年）' : '') + ' で ' + downWord + ' 下がる事故を 1 回使うと、これから ' + n + ' 年で保険料が合計 ' + yen(sim.total) + ' 増えます。' +
+      (sim.jikoariSpan < n ? '<span class="mini">事故有の ' + sim.jikoariSpan + ' 年で ' + fmt(sim.totalInJikoari) + '円、そのあと 20 等級にそろうまで等級の差が残るぶんで ' + fmt(sim.total - sim.totalInJikoari) + '円。</span>' : '') + '</p>';
+    h += '<div class="legend"><span><i class="a"></i>使わない</span><span><i class="b"></i>使う</span><span class="note">事故有＝事故のあと数年つづく、割引が少ない段階</span></div>';
+    var head = sim.years.filter(function(y){ return y.year <= sim.jikoariSpan; });
+    var tail = sim.years.filter(function(y){ return y.year > sim.jikoariSpan; });
+    h += '<div class="yrs">' + head.map(function(y){ return yearRow(y, true); }).join('') + '</div>';
+    if (tail.length >= 3){
+      var mn = Infinity, mx = -Infinity, sum = 0, jump = false;
+      tail.forEach(function(y){ mn = Math.min(mn, y.diff); mx = Math.max(mx, y.diff); sum += y.diff; if (y.noClaim.grade === 20 && y.claim.grade < 20) jump = true; });
+      h += '<details class="tail"><summary><div class="tailsum"><b class="rng">' + tail[0].year + '〜' + tail[tail.length - 1].year + '年目</b>毎年 <b>' + (mn === mx ? fmt(mn) : fmt(mn) + '〜' + fmt(mx)) + '円</b> の差 ＝ 合計 <b>' + fmt(sum) + '円</b>' +
+        '<small>事故有は終わっても、等級の差が残るぶん。' + (jump && mn !== mx ? '20 等級だけ割引が大きいので、使わない側が先に 20 等級になると差が広がります。' : '') + '</small></div></summary>' +
+        '<div class="yrs">' + tail.map(function(y){ return yearRow(y, false); }).join('') + '</div></details>';
+    } else {
+      h += '<div class="yrs">' + tail.map(function(y){ return yearRow(y, false); }).join('') + '</div>';
+    }
+    h += '<div class="sum"><span>' + n + ' 年の合計</span><span>+' + fmt(sim.total) + '円</span></div>';
+    h += '<p class="hint">' + n + ' 年目のあとは、使った場合も使わなかった場合も同じ等級・同じ保険料になります。</p>';
+    body.innerHTML = h;
+  }
+
+  function renderHow(sim){
+    var h = '';
+    h += '<p>自動車保険の「等級」（1〜20）は、無事故の年数で決まる保険料の割引の段階です。保険を使うと翌年に 3 等級（盗難・飛び石などは 1 等級）下がり、さらに 3 年間（1 等級ダウンは 1 年間）は「事故有」の高めの率になります。使わなければ毎年 1 等級上がります。</p>';
+    h += '<p>このアプリは、今の年間保険料を今の等級の率で割って「等級に関係ない元の保険料」とみなし、使った場合・使わなかった場合それぞれの等級の率をかけて、これから毎年の保険料を出しています。2 つが同じ等級にそろう年までの差の合計が「増える保険料」、それに自己負担（免責）を足したものが「自腹が得になる分かれ目」です。</p>';
+    if (sim) h += '<p>今回：元の保険料 ' + fmt(sim.base) + '円（' + fmt(sim.premium) + '円 ÷ ' + coef(sim.grade, sim.jikoariYears > 0).toFixed(2) + '）。使った場合の事故有の期間は ' + sim.jikoariSpan + ' 年' + (sim.jikoariYears ? '（今の残り ' + sim.jikoariYears + ' 年 − 1 ＋ ' + sim.down + ' 年、上限 6 年）' : '') + '。</p>';
+    h += '<table><thead><tr><th>等級</th><th>無事故</th><th>事故有</th></tr></thead><tbody>';
+    for (var g = 20; g >= 1; g--){
+      var r = RATES[g]; var pct = function(x){ return (x > 0 ? '+' : '') + x + '%'; };
+      h += '<tr><td>' + g + '</td><td>' + pct(r[0]) + '</td><td>' + (g <= 6 ? '同じ' : pct(r[1])) + '</td></tr>';
+    }
+    h += '</tbody></table>';
+    h += '<p class="src">割増引率は損害保険料率算出機構の自動車保険参考純率（2021 年 6 月届出、多くの保険会社が 2023 年 1 月以降の契約から適用）の値で、2026 年 10 月時点で各社の案内（<a href="https://www.sompo-direct.co.jp/otona/oshiete/insurance/insurance-grade.html" target="_blank" rel="noopener">損保ジャパン</a>など）で確認したものです。保険会社によって細かい率や年齢条件のあつかいがちがうこと、ふつうの保険料には等級と関係ない部分（特約など）もあること、将来の保険料の改定は見込んでいないことから、ここで出る金額は目安です。</p>';
+    $('howBody').innerHTML = h;
+  }
+
+  // 入力：数字だけにして、3 けたごとの区切りを付ける
+  function bindYen(el){
+    el.addEventListener('input', function(){
+      var v = el.value.replace(/[０-９]/g, function(c){ return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[^\d]/g, '');
+      el.value = v ? (+v).toLocaleString('ja-JP') : '';
+      render();
+    });
+  }
+  bindYen(repairEl); bindYen(premiumEl); bindYen(deductEl);
+  gradeEl.addEventListener('change', render);
+  jikoariEl.addEventListener('change', render);
+  Array.prototype.forEach.call(document.querySelectorAll('input[name=kind]'), function(r){ r.addEventListener('change', render); });
+  $('reset').addEventListener('click', function(){
+    repairEl.value = ''; premiumEl.value = ''; deductEl.value = ''; gradeEl.value = ''; jikoariEl.value = 0;
+    document.querySelector('input[name=kind][value="3"]').checked = true; $('adv').open = false;
+    render(); window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' }); repairEl.focus({ preventScroll: true });
+  });
+
+  load();
+  render();
+})();
+</script>
+</body>
+</html>
